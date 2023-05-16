@@ -1,4 +1,7 @@
-﻿#include "image-to-gradient.h"
+﻿#include <iostream>
+#include <sstream>
+
+#include "image-to-gradient.h"
 
 int main(int argc, char** argv) {
     if (argc != 3) {
@@ -11,8 +14,8 @@ int main(int argc, char** argv) {
 
     std::cout << "RGBA" << std::endl;
 
-    auto image = ItG::load<ItG::ImageRGBA::ImageType>(image_path);
-    auto gradient = ItG::toGradient(image, 0, 1);
+    auto image = ItG::load<ItG::ImageRGBA::image_t>(image_path);
+    auto gradient = ItG::image_to_linear(image, 0.2f, 0.8f);
 
     std::stringstream gradient_css;
     gradient_css << "linear-gradient(90deg";

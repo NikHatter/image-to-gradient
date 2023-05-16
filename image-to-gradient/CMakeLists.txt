@@ -9,8 +9,10 @@ find_package(PNG REQUIRED)
 add_executable (image-to-gradient
   "image-to-gradient.cpp"
   "image-to-gradient.h"
-  "image.hpp"
   "gradient.hpp"
+  "color.hpp"
+  "pixel.hpp"
+  "image.hpp"
 )
 
 target_link_libraries(image-to-gradient ${JPEG_LIBRARIES} PNG::PNG)

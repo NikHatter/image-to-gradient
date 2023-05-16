@@ -8,7 +8,6 @@ find_package(PNG REQUIRED)
 # Add source to this project's executable.
 add_executable (image-to-gradient
   "image-to-gradient.cpp"
-  "image-to-gradient.h"
   "gradient.hpp"
   "color.hpp"
   "pixel.hpp"

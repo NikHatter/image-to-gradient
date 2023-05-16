@@ -97,9 +97,6 @@ namespace ItG::Gradient {
 
             split(first, fartherst, splits, true);
 
-            auto prev = fartherst - 1;
-            auto next = fartherst + 1;
-
             splits.push_back(fartherst);
 
             split(fartherst, last, splits);

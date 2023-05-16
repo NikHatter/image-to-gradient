@@ -1,7 +1,8 @@
 ﻿#include <iostream>
 #include <sstream>
 
-#include "image-to-gradient.h"
+#include "gradient.hpp"
+#include "image.hpp"
 
 int main(int argc, char** argv) {
     if (argc != 3) {
@@ -14,8 +15,12 @@ int main(int argc, char** argv) {
 
     std::cout << "RGBA" << std::endl;
 
-    auto image = ItG::load<ItG::ImageRGBA::image_t>(image_path);
-    auto gradient = ItG::image_to_linear(image, 0.2f, 0.8f);
+    auto image = ItG::Image::load<ItG::Image::RGBA>(image_path);
+    auto view = boost::gil::view(image);
+    auto colors = ItG::Image::get_colors(view, 0.0f, 0.5f, 1.0f, 0.5f, view.width());
+
+    ItG::Gradient::LinearBuilder<4> builder;
+    auto gradient = builder.from_colors(colors);
 
     std::stringstream gradient_css;
     gradient_css << "linear-gradient(90deg";
@@ -34,5 +39,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-

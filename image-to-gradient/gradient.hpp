@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <list>
+#include <stack>
 #include <vector>
 #include <iterator>
 #include <limits>
@@ -76,7 +77,7 @@ namespace ItG::Gradient {
     protected:
         DistanceOp distance;
 
-        void split(LinearIterator<Size> first, LinearIterator<Size> last, std::list<LinearIterator<Size>>& splits, bool left = false) {
+        void split_recursion(LinearIterator<Size> first, LinearIterator<Size> last, std::list<LinearIterator<Size>>& splits, bool left = false) {
             LinearIterator<Size> fartherst = std::next(first);
             if (fartherst == last) {
                 return;
@@ -95,11 +96,56 @@ namespace ItG::Gradient {
             if (max_dist < tolerance)
                 return;
 
-            split(first, fartherst, splits, true);
+            split_recursion(first, fartherst, splits, true);
 
             splits.push_back(fartherst);
 
-            split(fartherst, last, splits);
+            split_recursion(fartherst, last, splits);
+        }
+
+        void split(LinearIterator<Size> first, LinearIterator<Size> last, std::list<LinearIterator<Size>>& splits) {
+            using Interval = std::pair< LinearIterator<Size>, LinearIterator<Size> >;
+            using IntervalStack = std::stack< Interval >;
+
+            IntervalStack pending;
+            pending.emplace(first, last);
+
+            std::map<ptrdiff_t, LinearIterator<Size>> sorted_splits;
+
+            while (!pending.empty()) {
+                Interval current = pending.top();
+                pending.pop();
+
+                const auto& step_first = current.first;
+                const auto& step_last = current.second;
+
+                LinearIterator<Size> fartherst = std::next(step_first);
+                if (fartherst == step_last) {
+                    continue;
+                }
+                
+                float scale = 1.f / (step_last->position - step_first->position);
+                float max_dist = distance(step_first, step_last, fartherst, (fartherst->position - step_first->position) * scale);
+                for (LinearIterator<Size> color = fartherst + 1; color != step_last; ++color) {
+                    float cur_dist = distance(step_first, step_last, color, (color->position - step_first->position) * scale);
+                    if (cur_dist > max_dist) {
+                        max_dist = cur_dist;
+                        fartherst = color;
+                    }
+                }
+
+                if (max_dist < tolerance)
+                    continue;
+
+                pending.emplace(fartherst, step_last);
+                pending.emplace(step_first, fartherst);
+
+                sorted_splits.emplace(std::distance(first, fartherst), fartherst);
+            }
+
+            for (auto& sorted_split : sorted_splits) {
+                splits.push_back(sorted_split.second);
+            }
         }
 
         void append_keys(

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <list>
+#include <map>
 #include <stack>
 #include <vector>
 #include <iterator>

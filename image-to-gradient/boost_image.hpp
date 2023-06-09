@@ -4,7 +4,8 @@
 #include <algorithm>
 #include <ranges>
 
-#include "pixel.hpp"
+#include "boost_pixel.hpp"
+#include "gradient.hpp"
 
 #include "boost/gil.hpp"
 #include "boost/gil/extension/dynamic_image/any_image.hpp"
@@ -97,6 +98,55 @@ namespace ItG::Image {
             ) );
         }
         return colors;
+    }
+
+    template<typename View>
+    inline Gradient::Linear<Pixel::view_size<View>::value> get_linear(View& view, float x1, float y1, float x2, float y2) {
+        constexpr size_t Size = Pixel::view_size<View>::value;
+
+        if (!is_valid(view))
+            return {};
+
+        ItG::Gradient::Linear<Size> gradient;
+
+        const ptrdiff_t width = view.width();
+        const ptrdiff_t height = view.height();
+
+        ptrdiff_t i_x1 = ItG::Image::unit_to_pixel(x1, width);
+        ptrdiff_t i_x2 = ItG::Image::unit_to_pixel(x2, width);
+        ptrdiff_t i_y1 = ItG::Image::unit_to_pixel(y1, height);
+        ptrdiff_t i_y2 = ItG::Image::unit_to_pixel(y2, height);
+
+        ptrdiff_t size_x = i_x2 - i_x1;
+        ptrdiff_t size_y = i_y2 - i_y1;
+        gradient.reserve(std::max(abs(size_x), abs(size_y)));
+
+        ptrdiff_t sample_x = i_x1;
+        ptrdiff_t sample_y = i_y1;
+        float position = 0.f;
+
+        if (std::max(abs(size_x), abs(size_y)) < 3 ) {
+            gradient.emplace_back(Pixel::to_color( *view.xy_at( i_x1, i_y1 ) ), 0.f);
+            gradient.emplace_back(Pixel::to_color( *view.xy_at( i_x2, i_y2 ) ), 1.f);
+        } else {
+            while (position <= 1.0f) {
+                gradient.emplace_back(Pixel::to_color( *view.xy_at(sample_x, sample_y) ), position);
+
+                if (size_x == 0 && size_y == 0)
+                    break;
+
+                if (size_x >= size_y) {
+                    sample_x++;
+                    position = float(sample_x - i_x1) / size_x;
+                    sample_y = static_cast<ptrdiff_t>( std::lerp(i_y1, i_y2, position) );
+                } else {
+                    sample_y++;
+                    position = float(sample_y - i_y1) / size_y;
+                    sample_x = static_cast<ptrdiff_t>( std::lerp(i_x1, i_x2, position) );
+                }
+            }
+        }
+        return gradient;
     }
 
 }

@@ -2,7 +2,7 @@
 #include <sstream>
 
 #include "gradient.hpp"
-#include "image.hpp"
+#include "boost_image.hpp"
 
 int main(int argc, char** argv) {
     if (argc != 3) {
@@ -17,10 +17,10 @@ int main(int argc, char** argv) {
 
     auto image = ItG::Image::load<ItG::Image::RGBA>(image_path);
     auto view = boost::gil::view(image);
-    auto colors = ItG::Image::get_colors(view, 0.0f, 0.5f, 1.0f, 0.5f, view.width());
+    auto linear = ItG::Image::get_linear(view, 0.0f, 0.5f, 1.0f, 0.5f);
 
     ItG::Gradient::LinearBuilder<4> builder;
-    auto gradient = builder.from_colors(colors);
+    auto gradient = builder.from_linear(linear);
 
     std::stringstream gradient_css;
     gradient_css << "linear-gradient(90deg";

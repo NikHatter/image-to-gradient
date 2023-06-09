@@ -2,6 +2,8 @@
   "dependencies": [
     "boost-gil",
     "libjpeg-turbo",
-    "libpng"
+    "libpng",
+    "qtbase",
+    "qttools"
   ]
 }

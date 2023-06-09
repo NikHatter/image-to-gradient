@@ -16,8 +16,5 @@ add_executable (image-to-gradient
 
 target_link_libraries(image-to-gradient ${JPEG_LIBRARIES} PNG::PNG)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET image-to-gradient PROPERTY CXX_STANDARD 20)
-endif()
 
 # TODO: Add tests and install targets if needed.

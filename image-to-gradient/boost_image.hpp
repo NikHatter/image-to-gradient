@@ -135,13 +135,13 @@ namespace ItG::Image {
                 if (size_x == 0 && size_y == 0)
                     break;
 
-                if (size_x >= size_y) {
+                if (abs(size_x) >= abs(size_y)) {
                     sample_x++;
-                    position = float(sample_x - i_x1) / size_x;
+                    position = fabs( float(sample_x - i_x1) / size_x );
                     sample_y = static_cast<ptrdiff_t>( std::lerp(i_y1, i_y2, position) );
                 } else {
                     sample_y++;
-                    position = float(sample_y - i_y1) / size_y;
+                    position = fabs( float(sample_y - i_y1) / size_y );
                     sample_x = static_cast<ptrdiff_t>( std::lerp(i_x1, i_x2, position) );
                 }
             }

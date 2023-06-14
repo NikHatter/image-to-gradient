@@ -7,8 +7,7 @@
 #include "../image-to-gradient/gradient.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -49,7 +48,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 void MainWindow::on_chooseImage_clicked() {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Choose input image"), {}, tr("Image Files (*.png *.jpg *.bmp)"));
 
-    ui->imagePath->setText(fileName);
+    setImage(fileName);
 }
 
 void MainWindow::on_imagePath_textChanged(const QString& text) {
@@ -109,13 +108,13 @@ inline ItG::Gradient::Linear<4> get_linear(const QImage& image, float x1, float 
             if (size_x == 0 && size_y == 0)
                 break;
 
-            if (size_x >= size_y) {
+            if (abs(size_x) >= abs(size_y)) {
                 sample_x++;
-                position = float(sample_x - i_x1) / size_x;
+                position = fabs( float(sample_x - i_x1) / size_x );
                 sample_y = static_cast<int>( std::lerp(i_y1, i_y2, position) );
             } else {
                 sample_y++;
-                position = float(sample_y - i_y1) / size_y;
+                position = fabs( float(sample_y - i_y1) / size_y );
                 sample_x = static_cast<int>( std::lerp(i_x1, i_x2, position) );
             }
         }

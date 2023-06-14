@@ -78,23 +78,33 @@ namespace ItG::Gradient {
     protected:
         DistanceOp distance;
 
-        void split_recursion(LinearIterator<Size> first, LinearIterator<Size> last, std::list<LinearIterator<Size>>& splits, bool left = false) {
+        // returns iterator to key with highest difference with linear gradient between first and last (within tolerance); or last if no such key found
+        LinearIterator<Size> find_farthest(LinearIterator<Size> first, LinearIterator<Size> last) {
             LinearIterator<Size> fartherst = std::next(first);
             if (fartherst == last) {
-                return;
+                return last;
             }
 
-            float scale = 1.f / (last->position - first->position);
-            float max_dist = distance(first, last, fartherst, (fartherst->position - first->position) * scale);
+            const float scale = 1.f / (last->position - first->position);
+            float max_distance = distance(first, last, fartherst, (fartherst->position - first->position) * scale);
             for (LinearIterator<Size> color = fartherst + 1; color != last; ++color) {
                 float cur_dist = distance(first, last, color, (color->position - first->position) * scale);
-                if (cur_dist > max_dist || !left && cur_dist == max_dist) {
-                    max_dist = cur_dist;
+                if (cur_dist > max_distance) {
+                    max_distance = cur_dist;
                     fartherst = color;
                 }
             }
 
-            if (max_dist < tolerance)
+            if (max_distance < tolerance) {
+                return last;
+            }
+
+            return fartherst;
+        }
+
+        void split_recursion(LinearIterator<Size> first, LinearIterator<Size> last, std::list<LinearIterator<Size>>& splits, bool left = false) {
+            LinearIterator<Size> fartherst = find_farthest(first, last);
+            if (fartherst == last)
                 return;
 
             split_recursion(first, fartherst, splits, true);
@@ -117,29 +127,12 @@ namespace ItG::Gradient {
                 Interval current = pending.top();
                 pending.pop();
 
-                const auto& step_first = current.first;
-                const auto& step_last = current.second;
-
-                LinearIterator<Size> fartherst = std::next(step_first);
-                if (fartherst == step_last) {
-                    continue;
-                }
-                
-                float scale = 1.f / (step_last->position - step_first->position);
-                float max_dist = distance(step_first, step_last, fartherst, (fartherst->position - step_first->position) * scale);
-                for (LinearIterator<Size> color = fartherst + 1; color != step_last; ++color) {
-                    float cur_dist = distance(step_first, step_last, color, (color->position - step_first->position) * scale);
-                    if (cur_dist > max_dist) {
-                        max_dist = cur_dist;
-                        fartherst = color;
-                    }
-                }
-
-                if (max_dist < tolerance)
+                LinearIterator<Size> fartherst = find_farthest(current.first, current.second);
+                if (fartherst == current.second)
                     continue;
 
-                pending.emplace(fartherst, step_last);
-                pending.emplace(step_first, fartherst);
+                pending.emplace(fartherst, current.second);
+                pending.emplace(current.first, fartherst);
 
                 sorted_splits.emplace(std::distance(first, fartherst), fartherst);
             }

@@ -9,6 +9,8 @@ if (POLICY CMP0141)
   #set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
+project ("image-to-gradient")
+
 if(WIN32)
   #set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -29,11 +31,10 @@ else(WIN32)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${image-to-gradient_SOURCE_DIR}/out/bin/${CMAKE_BUILD_TYPE})
 endif()
 
-project ("image-to-gradient")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include sub-projects.
-add_subdirectory ("image-to-gradient")
-add_subdirectory ("visual-tool")
+add_subdirectory ("console_app")
+add_subdirectory ("gui_app")

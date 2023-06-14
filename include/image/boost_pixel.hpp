@@ -1,6 +1,6 @@
 #pragma once
 
-#include "color.hpp"
+#include "gradient/color.hpp"
 
 #include "boost/gil/typedefs.hpp"
 #include "boost/gil/pixel.hpp"

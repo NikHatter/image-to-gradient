@@ -2,7 +2,7 @@
 #include <sstream>
 
 #include "gradient.hpp"
-#include "boost_image.hpp"
+#include "image/boost_image.hpp"
 
 int main(int argc, char** argv) {
     if (argc != 3) {

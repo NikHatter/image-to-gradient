@@ -5,7 +5,7 @@
 #include <ranges>
 
 #include "boost_pixel.hpp"
-#include "gradient.hpp"
+#include "gradient/linear.hpp"
 
 #include "boost/gil.hpp"
 #include "boost/gil/extension/dynamic_image/any_image.hpp"

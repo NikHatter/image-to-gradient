@@ -13,9 +13,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     inputScene = new QGraphicsScene(this);
+
     inputRoot = new QGraphicsItemGroup();
     inputScene->addItem(inputRoot);
     inputRoot->setPos(0, 0);
+
+    stopsRoot = new QGraphicsItemGroup();
 
     samplerLine = new QGraphicsLineItem(0, 0, 1, 1);
     samplerStart = new QGraphicsEllipseItem(0, 0, 4, 4);
@@ -76,7 +79,6 @@ void MainWindow::setImage(const QString& path) {
 
     currentImage = pixmap.toImage();
 
-    inputRoot->childItems().clear();
     if (currentPixmap) {
         currentPixmap->setPixmap(pixmap);
         currentPixmap->update();
@@ -84,6 +86,7 @@ void MainWindow::setImage(const QString& path) {
         currentPixmap = new QGraphicsPixmapItem(pixmap);
         inputRoot->addToGroup(currentPixmap);
         inputRoot->addToGroup(samplerLine);
+        inputRoot->addToGroup(stopsRoot);
         inputRoot->addToGroup(samplerStart);
         inputRoot->addToGroup(samplerEnd);
     }
@@ -127,6 +130,13 @@ void MainWindow::updateGradient() {
     float end_x = ui->endX->value();
     float end_y = ui->endY->value();
 
+    auto stops_rect = currentPixmap->boundingRect();
+    qreal stops_x1 = stops_rect.x() + stops_rect.width() * start_x;
+    qreal stops_x2 = stops_rect.x() + stops_rect.width() * end_x;
+    qreal stops_y1 = stops_rect.y() + stops_rect.height() * start_y;
+    qreal stops_y2 = stops_rect.y() + stops_rect.height() * end_y;
+    qreal dot_radius = 3;
+
     // TODO store
     auto linear = ItG::Image::get_linear(currentImage, start_x, start_y, end_x, end_y);
 
@@ -134,13 +144,45 @@ void MainWindow::updateGradient() {
     builder.tolerance = ui->deflectionFloat->value();
     auto gradient = builder.from_linear(linear);
 
+    auto children = stopsRoot->childItems();
+    for (auto child : children) {
+        stopsRoot->removeFromGroup(child);
+        if (child) {
+            delete child;
+        }
+    }
+
     gradientScene->clear();
     QLinearGradient qt_gradient(0, 0, ui->gradientView->contentsRect().width(), 0);
+    QStringList stops;
     qt_gradient.setSpread(QGradient::PadSpread);
+    QRectF total_rect = gradientScene->sceneRect();
+    qreal dot_half_size = 3;
     for (auto& stop : gradient) {
-        qt_gradient.setColorAt(stop.position, QColor(stop.color[0] * 255, stop.color[1] * 255, stop.color[2] * 255, stop.color[3] * 255));
+        QColor color{ 
+            std::clamp(static_cast<int>(stop.color[0] * 255), 0, 255),
+            std::clamp(static_cast<int>(stop.color[1] * 255), 0, 255),
+            std::clamp(static_cast<int>(stop.color[2] * 255), 0, 255),
+            std::clamp(static_cast<int>(stop.color[3] * 255), 0, 255) 
+        };
+        qt_gradient.setColorAt(stop.position, color);
+        stops.push_back(
+            QString("rgba(%1, %2, %3, %4) %4%")
+            .arg( color.red() ).arg( color.green() ).arg( color.blue() ).arg( color.alpha() )
+            .arg(stop.position * 100.f)
+        );
+
+        QGraphicsEllipseItem* stopDot = new QGraphicsEllipseItem( 
+            std::lerp(stops_x1, stops_x2, stop.position) - dot_radius,
+            std::lerp(stops_y1, stops_y2, stop.position) - dot_radius,
+            2*dot_radius, 2*dot_radius
+        );
+        stopsRoot->addToGroup(stopDot);
+        stopDot->setBrush(color);
     }
     gradientScene->setSceneRect(ui->gradientView->contentsRect());
     gradientScene->addRect(ui->gradientView->contentsRect(), {}, qt_gradient);
+
+    ui->gradientStops->setPlainText(stops.join(", "));
 }
 

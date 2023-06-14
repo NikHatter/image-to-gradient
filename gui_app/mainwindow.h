@@ -47,6 +47,7 @@ private:
 
     QGraphicsScene* inputScene;
     QGraphicsItemGroup* inputRoot = nullptr;
+    QGraphicsItemGroup* stopsRoot = nullptr;
     QGraphicsEllipseItem* samplerStart = nullptr;
     QGraphicsEllipseItem* samplerEnd = nullptr;
     QGraphicsLineItem* samplerLine = nullptr;

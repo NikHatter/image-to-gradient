@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
     auto view = boost::gil::view(image);
     auto linear = ItG::Image::get_linear(view, 0.0f, 0.5f, 1.0f, 0.5f);
 
-    ItG::Gradient::LinearBuilder<4> builder;
-    auto gradient = builder.from_linear(linear);
+    ItG::Gradient::Stops::Approximate<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract{};
+    auto gradient = ItG::Gradient::from_gradient(linear, stop_extract);
 
     std::stringstream gradient_css;
     gradient_css << "linear-gradient(90deg";

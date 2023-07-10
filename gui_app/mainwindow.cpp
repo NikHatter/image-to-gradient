@@ -67,6 +67,13 @@ void MainWindow::on_endY_valueChanged(double d) { updateSamplePoints(); }
 void MainWindow::on_deflectionByte_valueChanged(double d) { ui->deflectionFloat->setValue(d / 255.f); };
 void MainWindow::on_deflectionFloat_valueChanged(double d) { updateGradient(); }
 
+void MainWindow::on_stopCount_valueChanged(int d) {  updateGradient(); }
+void MainWindow::on_stopDistance_valueChanged(double d) { updateGradient(); }
+
+
+void MainWindow::on_modeApproximate_toggled(bool b) { updateGradient(); };
+void MainWindow::on_modeSteps_toggled(bool b) { updateGradient(); };
+
 void MainWindow::setImage(const QString& path) {
     if (path == ui->imagePath->text() || path.isEmpty() || !QFileInfo::exists(path))
         return;
@@ -140,9 +147,29 @@ void MainWindow::updateGradient() {
     // TODO store
     auto linear = ItG::Image::get_linear(currentImage, start_x, start_y, end_x, end_y);
 
-    ItG::Gradient::LinearBuilder<4> builder;
-    builder.tolerance = ui->deflectionFloat->value();
-    auto gradient = builder.from_linear(linear);
+    ItG::Gradient::Linear<4> gradient{};
+
+    if (ui->modeApproximate->isChecked()) {
+        ItG::Gradient::Stops::Approximate<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract;
+        stop_extract.tolerance = ui->deflectionFloat->value();
+
+        gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+    } else if (ui->modeSteps->isChecked()) {
+        auto stopDistance = ui->stopDistance->value();
+        if (stopDistance == 0.f) {
+            ItG::Gradient::Stops::ColorCount<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract;
+            stop_extract.count = ui->stopCount->value() - 2;
+
+            gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+        } else {
+            ItG::Gradient::Stops::StepCount<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract;
+            stop_extract.count = ui->stopCount->value() - 2;
+            stop_extract.stop_distance = stopDistance;
+
+            gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+        }
+    }
+
 
     auto children = stopsRoot->childItems();
     for (auto child : children) {

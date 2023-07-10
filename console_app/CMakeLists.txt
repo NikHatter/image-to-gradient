@@ -11,9 +11,6 @@ set(PROJECT_NAME image-to-gradient-console)
 add_executable (${PROJECT_NAME}
   "main.cpp"
   "${CMAKE_SOURCE_DIR}/include/gradient.hpp"
-  "${CMAKE_SOURCE_DIR}/include/gradient/color.hpp"
-  "${CMAKE_SOURCE_DIR}/include/gradient/linear.hpp"
-  "${CMAKE_SOURCE_DIR}/include/gradient/linear_builder.hpp"
   "${CMAKE_SOURCE_DIR}/include/image/boost_pixel.hpp"
   "${CMAKE_SOURCE_DIR}/include/image/boost_image.hpp"
 )

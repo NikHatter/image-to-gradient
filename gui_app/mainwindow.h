@@ -25,12 +25,20 @@ public:
 private slots:
     void on_chooseImage_clicked();
     void on_imagePath_textChanged(const QString &text);
+
     void on_startX_valueChanged(double d);
     void on_startY_valueChanged(double d);
     void on_endX_valueChanged(double d);
     void on_endY_valueChanged(double d);
+
     void on_deflectionFloat_valueChanged(double d);
     void on_deflectionByte_valueChanged(double d);
+
+    void on_stopCount_valueChanged(int d);
+    void on_stopDistance_valueChanged(double d);
+
+    void on_modeApproximate_toggled(bool b);
+    void on_modeSteps_toggled(bool b);
 
     void setImage(const QString& path);
     void updateSamplePoints();

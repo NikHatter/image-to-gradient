@@ -34,13 +34,6 @@
     </item>
     <item row="2" column="0" colspan="2">
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>X</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="2">
        <widget class="QDoubleSpinBox" name="endY">
         <property name="decimals">
@@ -57,16 +50,22 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="startX">
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="deflectionByte">
         <property name="decimals">
-         <number>4</number>
+         <number>2</number>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>1.000000000000000</double>
+         <double>255.000000000000000</double>
         </property>
         <property name="singleStep">
-         <double>0.050000000000000</double>
+         <double>1.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>4.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -86,33 +85,27 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="modeApproximate">
+        <property name="text">
+         <string>Max deflection</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="modeSteps">
+        <property name="text">
+         <string>Stop count</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Y</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="startY">
-        <property name="decimals">
-         <number>4</number>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.050000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.500000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Max deflection</string>
         </property>
        </widget>
       </item>
@@ -135,22 +128,74 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="deflectionByte">
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="startY">
         <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.050000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="startX">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.050000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="stopCount">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimum">
          <number>2</number>
+        </property>
+        <property name="maximum">
+         <number>1024</number>
+        </property>
+        <property name="value">
+         <number>6</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QDoubleSpinBox" name="stopDistance">
+        <property name="decimals">
+         <number>4</number>
         </property>
         <property name="minimum">
          <double>0.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>255.000000000000000</double>
-        </property>
-        <property name="singleStep">
          <double>1.000000000000000</double>
         </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
         <property name="value">
-         <double>4.000000000000000</double>
+         <double>0.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -210,5 +255,54 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>modeApproximate</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>deflectionByte</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>262</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>262</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>modeApproximate</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>deflectionFloat</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>262</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>661</x>
+     <y>262</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>modeSteps</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>stopCount</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>290</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>530</x>
+     <y>290</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

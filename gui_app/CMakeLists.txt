@@ -24,9 +24,6 @@ if (Qt6_FOUND)
     mainwindow.ui
     
     "${CMAKE_SOURCE_DIR}/include/gradient.hpp"
-    "${CMAKE_SOURCE_DIR}/include/gradient/color.hpp"
-    "${CMAKE_SOURCE_DIR}/include/gradient/linear.hpp"
-    "${CMAKE_SOURCE_DIR}/include/gradient/linear_builder.hpp"
     "${CMAKE_SOURCE_DIR}/include/image/boost_pixel.hpp"
     "${CMAKE_SOURCE_DIR}/include/image/boost_image.hpp"
     "${CMAKE_SOURCE_DIR}/include/image/qt_image.hpp"

@@ -4,16 +4,33 @@
 
 namespace ItG::Gradient::Operator {
 
-    template<size_t Size>
     struct MaxDifference {
-        inline float operator()(const LinearIterator<Size>& first, const LinearIterator<Size>& last, const LinearIterator<Size>& a, const float& u) const {
-            return operator()(lerp(first->color, last->color, u), a->color);
+        template<LinearRange Range>
+        inline [[nodiscard]] LinearRange_Color<Range> expected(Range range, float&& position) const {
+            return lerp(range.front().color, range.back().color, std::forward<float>(position));
         }
 
-        inline float operator()(const Color<Size>& a, const Color<Size>& b) const {
-            Color<Size> diff = abs_diff(a, b);
-            return *std::max_element(diff.begin(), diff.end());
+        template<LinearRange Range>
+        inline float operator()(const LinearRange_Value<Range>& value, Range range, float&& position) const {
+            return operator()(
+                value.color,
+                expected(range, std::forward<float>(position))
+            );
         }
+
+        template<LinearRange Range>
+        inline float operator()(const LinearRange_Iterator<Range>& value, Range range, float&& position) const {
+            return operator()(
+                value->color,
+                expected(range, std::forward<float>(position))
+            );
+        }
+
+        template<IsColor T>
+        inline [[nodiscard]] float operator()(const T& a, const T& b) const {
+            return std::ranges::max( abs_diff(a, b) );
+        }
+
     };
 
 }

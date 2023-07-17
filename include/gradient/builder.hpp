@@ -1,82 +1,86 @@
 ﻿#pragma once
 
 #include <list>
+#include <span>
+#include <ranges>
 
 #include "linear.hpp"
 
 namespace ItG::Gradient {
 
-    template<size_t Size>
+    template<LinearData TGradient>
     struct Builder {
-        using TGradient = Linear<Size>;
-        using TIterator = LinearIterator<Size>;
+        using TIterator = typename TGradient::iterator;
 
         std::array<float, 2> out_range{ { 0, 1} };
 
-        void append_keys( TIterator first, TIterator last, std::list< TIterator > keys, TGradient& gradient ) {
+        void append_keys(TGradient& keys, TGradient& gradient ) const {
             gradient.reserve(gradient.size() + keys.size());
 
-            float offset = out_range[0];
-            float scale = (out_range[1] - out_range[0]);
-            bool transform = out_range[0] != 0 || out_range[1] != 1;
-
-            for (const auto& key : keys) {
-                if (transform)
-                    gradient.emplace_back(key->color, key->position * scale + offset);
-                else
-                    gradient.emplace_back(key->color, key->position);
+            const float offset = out_range[0];
+            const float scale = (out_range[1] - out_range[0]);
+            const bool transform = out_range[0] != 0 || out_range[1] != 1;
+            
+            if (transform) {
+                std::ranges::transform(keys, back_inserter(gradient), [&](const auto& key) { return LinearRange_Value<TGradient>{key.color, key.position * scale + offset}; });
+            } else {
+                std::ranges::copy(keys, back_inserter(gradient));
             }
         }
 
-        TGradient build( TIterator first, TIterator last, std::list< TIterator > keys ) {
-            if (std::distance(first, last) < 1)
+        [[nodiscard]] TGradient build(TGradient& keys ) const {
+            if (std::size(keys) < 1)
                 return {};
 
             TGradient gradient;
-            append_keys(first, last, keys, gradient);
+            append_keys(keys, gradient);
             return gradient;
         }
     };
 
-    template<size_t Size, typename StopExtractor>
-    inline Linear<Size> from_gradient( Linear<Size>& gradient, Builder<Size>& builder, const StopExtractor& stop_extractor) {
+    template<typename DistanceOp, typename Strategy, LinearData TGradient>
+    inline [[nodiscard]] TGradient from_gradient( TGradient& gradient, Builder<TGradient>& builder, Strategy&& strategy = {}) {
+        using Iterator = Builder<TGradient>::TIterator;
+
         if (gradient.empty())
             return {};
 
-        std::list<LinearIterator<Size>> keys;
-        keys.push_back(gradient.begin());
+        TGradient keys;
+        keys.push_back(gradient.front());
 
-        stop_extractor(gradient.begin(), gradient.end() - 1, keys);
+        strategy(std::ranges::subrange(gradient.begin(), gradient.end()), keys, DistanceOp{});
 
-        keys.push_back(gradient.end() - 1);
+        keys.push_back(gradient.back());
 
-        return builder.build(gradient.begin(), gradient.end(), keys);
+        return builder.build(keys);
     }
 
-    template<size_t Size, typename StopExtractor>
-    inline Linear<Size> from_gradient( Linear<Size>& gradient, const StopExtractor& stop_extractor) {
-        Builder<Size> builder{};
-        return from_gradient(gradient, builder, stop_extractor);
+    template<typename DistanceOp, typename Strategy, LinearData TGradient>
+    inline [[nodiscard]] TGradient from_gradient( TGradient& gradient, Strategy&& strategy = {}) {
+        Builder<TGradient> builder{};
+        return from_gradient<DistanceOp>(gradient, builder, std::forward<Strategy>(strategy));
     }
 
-    template<size_t Size, typename StopExtractor>
-    inline Linear<Size> from_colors( std::vector< Color<Size> >& colors, Builder<Size>& builder, const StopExtractor& stop_extractor) {
+    template<typename DistanceOp, typename Strategy, LinearData TGradient>
+    inline [[nodiscard]] TGradient from_colors( std::vector< LinearRange_Value<TGradient> >& colors, Builder<TGradient>& builder, Strategy&& strategy = {}) {
+        using KeyType = TGradient::value_type;
+
         if (colors.empty())
             return {};
 
-        Linear<Size> gradient;
+        TGradient gradient;
         gradient.reserve(colors.size());
-        std::transform(colors.begin(), colors.end(), std::back_inserter(gradient), [&](auto& v) {
-            return Key<Size>{ v, gradient.size() / float(colors.size() - 1) };
+        std::ranges::transform(colors, std::back_inserter(gradient), [&](auto& v) {
+            return KeyType{ v, gradient.size() / float(colors.size() - 1) };
         });
 
-        return from_gradient(gradient, builder, stop_extractor);
+        return from_gradient<DistanceOp>(gradient, builder, std::forward<Strategy>(strategy));
     }
 
-    template<size_t Size, typename StopExtractor>
-    inline Linear<Size> from_colors( std::vector< Color<Size> >& colors, const StopExtractor& stop_extractor) {
-        Builder<Size> builder{};
-        return from_colors(colors, builder, stop_extractor);
+    template<typename DistanceOp, typename Strategy, LinearData TGradient>
+    inline [[nodiscard]] TGradient from_colors(std::vector< LinearRange_Value<TGradient> >& colors, Strategy&& strategy = {}) {
+        Builder<TGradient> builder{};
+        return from_colors<DistanceOp>(colors, builder, std::forward<Strategy>(strategy));
     }
 
 }

@@ -119,10 +119,10 @@ void MainWindow::updateSamplePoints() {
 
     samplerLine->setLine(x1, y1, x2, y2);
 
-    samplerStart->setBrush( ItG::Image::get_color(currentImage, start_x, start_y) );
+    samplerStart->setBrush( ItG::Image::Qt::get_color(currentImage, start_x, start_y) );
     samplerStart->setRect(x1 - dot_r, y1 - dot_r, 2 * dot_r, 2 * dot_r);
 
-    samplerEnd->setBrush( ItG::Image::get_color(currentImage, end_x, end_y) );
+    samplerEnd->setBrush( ItG::Image::Qt::get_color(currentImage, end_x, end_y) );
     samplerEnd->setRect(x2 - dot_r, y2 - dot_r, 2 * dot_r, 2 * dot_r);
 
     updateGradient();
@@ -145,28 +145,18 @@ void MainWindow::updateGradient() {
     qreal dot_radius = 3;
 
     // TODO store
-    auto linear = ItG::Image::get_linear(currentImage, start_x, start_y, end_x, end_y);
+    using namespace ItG::Gradient;
+    LinearRGBA linear = ItG::Image::Qt::get_linear(currentImage, start_x, start_y, end_x, end_y);
 
-    ItG::Gradient::Linear<4> gradient{};
-
+    LinearRGBA gradient{};
     if (ui->modeApproximate->isChecked()) {
-        ItG::Gradient::Stops::Approximate<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract;
-        stop_extract.tolerance = ui->deflectionFloat->value();
-
-        gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+        gradient = from_gradient<Operator::MaxDifference>(linear,  Strategy::Approximate{.tolerance = static_cast<float>(ui->deflectionFloat->value())});
     } else if (ui->modeSteps->isChecked()) {
-        auto stopDistance = ui->stopDistance->value();
+        float stopDistance = static_cast<float>(ui->stopDistance->value());
         if (stopDistance == 0.f) {
-            ItG::Gradient::Stops::ColorCount<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract;
-            stop_extract.count = ui->stopCount->value() - 2;
-
-            gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+            gradient = from_gradient<Operator::MaxDifference>(linear, Strategy::ColorCount{.count = static_cast<size_t>(ui->stopCount->value()) - 2});
         } else {
-            ItG::Gradient::Stops::StepCount<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract;
-            stop_extract.count = ui->stopCount->value() - 2;
-            stop_extract.stop_distance = stopDistance;
-
-            gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+            gradient = from_gradient<Operator::MaxDifference>(linear, Strategy::StepCount{.count = static_cast<size_t>(ui->stopCount->value()) - 2, .stop_distance = stopDistance});
         }
     }
 

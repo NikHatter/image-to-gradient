@@ -15,12 +15,13 @@ int main(int argc, char** argv) {
 
     std::cout << "RGBA" << std::endl;
 
-    auto image = ItG::Image::load<ItG::Image::RGBA>(image_path);
-    auto view = boost::gil::view(image);
-    auto linear = ItG::Image::get_linear(view, 0.0f, 0.5f, 1.0f, 0.5f);
+    using namespace ItG;
 
-    ItG::Gradient::Stops::Approximate<4, ItG::Gradient::Operator::MaxDifference<4>> stop_extract{};
-    auto gradient = ItG::Gradient::from_gradient(linear, stop_extract);
+    auto image = Image::gil::load<Image::gil::RGBA>(image_path);
+    auto view = boost::gil::view(image);
+    auto linear = Image::gil::get_linear< Gradient::LinearRGBA >(view, 0.0f, 0.5f, 1.0f, 0.5f);
+
+    auto gradient = Gradient::from_gradient<Gradient::Operator::MaxDifference, Gradient::Strategy::Approximate>(linear);
 
     std::stringstream gradient_css;
     gradient_css << "linear-gradient(90deg";

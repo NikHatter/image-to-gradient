@@ -5,7 +5,7 @@
 #include "boost/gil/typedefs.hpp"
 #include "boost/gil/pixel.hpp"
 
-namespace ItG::Pixel {
+namespace ItG::Image::gil {
 
     template<typename Layout>
     using layout_size = boost::mp11::mp_size< typename Layout::color_space_t >;
@@ -17,10 +17,10 @@ namespace ItG::Pixel {
     using view_size = pixel_size< typename View::value_type >;
 
     template <typename Channel, typename Layout>
-    Color<layout_size<Layout>::value> to_color(const boost::gil::pixel<Channel, Layout>& value) {
+    std::array<float, layout_size<Layout>::value> to_color(const boost::gil::pixel<Channel, Layout>& value) {
         constexpr size_t Size = layout_size<Layout>::value;
 
-        Color<Size> result{};
+        std::array<float, Size> result{};
         for (size_t i = 0; i < Size; i++) {
             if constexpr (std::is_integral_v<Channel>) {
                 result[i] = float(value[i]) / std::numeric_limits<Channel>::max();

@@ -12,7 +12,7 @@
 #include "boost/gil/extension/io/jpeg.hpp"
 #include "boost/gil/extension/io/png.hpp"
 
-namespace ItG::Image {
+namespace ItG::Image::gil {
 
     template <typename Layout>
     using ImageFloat = boost::gil::image< boost::gil::pixel<boost::gil::float32_t, Layout> >;
@@ -76,13 +76,13 @@ namespace ItG::Image {
     }
 
     template<typename View>
-    inline std::vector< Color<Pixel::view_size<View>::value> > get_colors(View& view, const float& x1, const float& y1, const float& x2, const float& y2, const ptrdiff_t& count) {
-        constexpr size_t Size = Pixel::view_size<View>::value;
+    inline std::vector< std::array<float, view_size<View>::value> > get_colors(View& view, const float& x1, const float& y1, const float& x2, const float& y2, const ptrdiff_t& count) {
+        constexpr size_t Size = view_size<View>::value;
 
         if (!is_valid(view))
             return {};
 
-        std::vector<Color<Size>> colors;
+        std::vector<std::array<float, Size>> colors;
         colors.reserve(count);
 
         const ptrdiff_t width = view.width();
@@ -93,29 +93,29 @@ namespace ItG::Image {
         float sample_y = y1;
 
         for (ptrdiff_t i_sample = 0; i_sample < count; i_sample++, sample_x += step_x, sample_y += step_y) {
-            colors.emplace_back( Pixel::to_color(
+            colors.emplace_back( to_color(
                 *view.xy_at( unit_to_point(sample_x, sample_y, width, height) )
             ) );
         }
         return colors;
     }
 
-    template<typename View>
-    inline Gradient::Linear<Pixel::view_size<View>::value> get_linear(View& view, float x1, float y1, float x2, float y2) {
-        constexpr size_t Size = Pixel::view_size<View>::value;
+    template<typename TGradient, typename View> requires Gradient::OfSize<TGradient, view_size<View>::value>
+    inline TGradient get_linear(View& view, float x1, float y1, float x2, float y2) {
+        constexpr size_t Size = view_size<View>::value;
 
         if (!is_valid(view))
             return {};
 
-        ItG::Gradient::Linear<Size> gradient;
+        TGradient gradient;
 
         const ptrdiff_t width = view.width();
         const ptrdiff_t height = view.height();
 
-        ptrdiff_t i_x1 = ItG::Image::unit_to_pixel(x1, width);
-        ptrdiff_t i_x2 = ItG::Image::unit_to_pixel(x2, width);
-        ptrdiff_t i_y1 = ItG::Image::unit_to_pixel(y1, height);
-        ptrdiff_t i_y2 = ItG::Image::unit_to_pixel(y2, height);
+        ptrdiff_t i_x1 = unit_to_pixel(x1, width);
+        ptrdiff_t i_x2 = unit_to_pixel(x2, width);
+        ptrdiff_t i_y1 = unit_to_pixel(y1, height);
+        ptrdiff_t i_y2 = unit_to_pixel(y2, height);
 
         ptrdiff_t size_x = i_x2 - i_x1;
         ptrdiff_t size_y = i_y2 - i_y1;
@@ -126,24 +126,21 @@ namespace ItG::Image {
         float position = 0.f;
 
         if (std::max(abs(size_x), abs(size_y)) < 3 ) {
-            gradient.emplace_back(Pixel::to_color( *view.xy_at( i_x1, i_y1 ) ), 0.f);
-            gradient.emplace_back(Pixel::to_color( *view.xy_at( i_x2, i_y2 ) ), 1.f);
-        } else {
-            while (position <= 1.0f) {
-                gradient.emplace_back(Pixel::to_color( *view.xy_at(sample_x, sample_y) ), position);
+            gradient.emplace_back(to_color( *view.xy_at( i_x1, i_y1 ) ), 0.f);
+            gradient.emplace_back(to_color( *view.xy_at( i_x2, i_y2 ) ), 1.f);
+        } else if (abs(size_x) >= abs(size_y)) {
+            for (int step = (size_x > 0 ? 1 : -1); sample_x != i_x2;  sample_x += step) {
+                position = fabs(float(sample_x - i_x1) / size_x);
+                sample_y = static_cast<int>(std::lerp(i_y1, i_y2, position));
 
-                if (size_x == 0 && size_y == 0)
-                    break;
+                gradient.emplace_back(to_color( *view.xy_at(sample_x, sample_y) ), position);
+            }
+        } else if (abs(size_x) < abs(size_y)) {
+            for (int step = (size_y > 0 ? 1 : -1); sample_y != i_y2;  sample_y += step) {
+                position = fabs(float(sample_y - i_y1) / size_y);
+                sample_x = static_cast<int>(std::lerp(i_x1, i_x2, position));
 
-                if (abs(size_x) >= abs(size_y)) {
-                    sample_x++;
-                    position = fabs( float(sample_x - i_x1) / size_x );
-                    sample_y = static_cast<ptrdiff_t>( std::lerp(i_y1, i_y2, position) );
-                } else {
-                    sample_y++;
-                    position = fabs( float(sample_y - i_y1) / size_y );
-                    sample_x = static_cast<ptrdiff_t>( std::lerp(i_x1, i_x2, position) );
-                }
+                gradient.emplace_back(to_color( *view.xy_at(sample_x, sample_y) ), position);
             }
         }
         return gradient;

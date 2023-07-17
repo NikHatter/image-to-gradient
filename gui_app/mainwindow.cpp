@@ -170,7 +170,6 @@ void MainWindow::updateGradient() {
         }
     }
 
-
     auto children = stopsRoot->childItems();
     for (auto child : children) {
         stopsRoot->removeFromGroup(child);
@@ -194,7 +193,7 @@ void MainWindow::updateGradient() {
         };
         qt_gradient.setColorAt(stop.position, color);
         stops.push_back(
-            QString("rgba(%1, %2, %3, %4) %4%")
+            QString("rgba(%1, %2, %3, %4) %5%")
             .arg( color.red() ).arg( color.green() ).arg( color.blue() ).arg( color.alpha() )
             .arg(stop.position * 100.f)
         );

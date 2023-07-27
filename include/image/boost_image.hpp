@@ -5,6 +5,7 @@
 #include <ranges>
 
 #include "boost_pixel.hpp"
+#include "gradient/operator/lerp.hpp"
 #include "gradient/linear.hpp"
 
 #include "boost/gil.hpp"

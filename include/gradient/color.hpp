@@ -7,18 +7,27 @@
 
 namespace ItG {
 
+    /// @brief Default color types
     namespace Color {
+        /// @brief Grayscale color
         using Gray = float;
+        /// @brief Grayscale color with alpha channel
         using GrayA = std::array<float, 2>;
+        /// @brief RGB color
         using RGB = std::array<float, 3>;
+        /// @brief RGB color with alpha channel
         using RGBA = std::array<float, 4>;
+        /// @brief CMYK color
         using CMYK = std::array<float, 4>;
+        /// @brief CMYK color with alpha channel
         using CMYKA = std::array<float, 5>;
     };
 
+    /// @brief Type is arithmetic
     template<typename T>
     concept Arithmetic = std::is_arithmetic_v<T>;
 
+    /// @brief Type supports indexed access and operations required for gradient algorithms
     template<typename T>
     concept IsColorArray = requires (const T& x) { 
         { std::size(x) };
@@ -30,6 +39,7 @@ namespace ItG {
         { std::lerp(x[0], x[0], 0.5f) };
     };
 
+    /// @brief Type can be used as color in gradient algorithms
     template<typename T>
     concept IsColor = Arithmetic<T> || IsColorArray<T>;
 
@@ -37,12 +47,15 @@ namespace ItG {
     template<Arithmetic T>
     consteval size_t getSize() { return 1; };
 
+    // consteval instead of simple variable or struct due to disjuntion specification errors
     template<IsColorArray T>
     consteval size_t getSize() { return std::size(T{}); };
 
+    /// @brief Number of channels of a color
     template<typename T>
     constexpr size_t ColorSize = getSize<T>();
 
+    /// @brief Color with N channels
     template<typename T, size_t N>
     concept IsColorN = IsColor<T> && requires { requires (ColorSize<T> == N); };
 
@@ -59,114 +72,4 @@ namespace ItG {
     static_assert(IsColorN<Color::RGBA, 4>,  "Color::RGBA size is not 4!");
     static_assert(IsColorN<Color::CMYK, 4>,  "Color::CMYK size is not 4!");
     static_assert(IsColorN<Color::CMYKA, 5>, "Color::CMYKA size is not 5!");
-
-
-    template <IsColor TColor>
-    inline [[nodiscard]] TColor abs_diff(const TColor& a, const TColor& b) {
-        TColor result{};
-        for (size_t i = 0; i < ColorSize<TColor>; i++) {
-            result[i] = a[i] - b[i];
-        }
-        return result;
-    }
-
-    template <IsColorN<1> TColor>
-    inline [[nodiscard]] TColor abs_diff(const TColor& a, const TColor& b) {
-        return { {
-                std::abs(a[0] - b[0])
-            } };
-    }
-
-    template <IsColorN<2> TColor>
-    inline [[nodiscard]] TColor abs_diff(const TColor& a, const TColor& b) {
-        return { {
-                std::abs(a[0] - b[0]),
-                std::abs(a[1] - b[1])
-            } };
-    }
-
-    template <IsColorN<3> TColor>
-    inline [[nodiscard]] TColor abs_diff(const TColor& a, const TColor& b) {
-        return { {
-                std::abs(a[0] - b[0]),
-                std::abs(a[1] - b[1]),
-                std::abs(a[2] - b[2])
-            } };
-    }
-
-    template <IsColorN<4> TColor>
-    inline [[nodiscard]] TColor abs_diff(const TColor& a, const TColor& b) {
-        return { {
-                std::abs(a[0] - b[0]),
-                std::abs(a[1] - b[1]),
-                std::abs(a[2] - b[2]),
-                std::abs(a[3] - b[3])
-            } };
-    }
-
-    template <IsColorN<5> TColor>
-    inline [[nodiscard]] TColor abs_diff(const TColor& a, const TColor& b) {
-        return { {
-                std::abs(a[0] - b[0]),
-                std::abs(a[1] - b[1]),
-                std::abs(a[2] - b[2]),
-                std::abs(a[3] - b[3]),
-                std::abs(a[4] - b[4])
-            } };
-    }
-
-
-    template <IsColor TColor>
-    inline [[nodiscard]] TColor lerp(const TColor& a, const TColor& b, const float& u) {
-        TColor result{};
-        for (size_t i = 0; i < ColorSize<TColor>; i++) {
-            result[i] = std::lerp(a[i], b[i], u);
-        }
-        return result;
-    }
-
-    template <IsColorN<1> TColor>
-    inline [[nodiscard]] TColor lerp(const TColor& a, const TColor& b, const float& u) {
-        return { { 
-                std::lerp(a[0], b[0], u)
-            } };
-    }
-
-    template <IsColorN<2> TColor>
-    inline [[nodiscard]] TColor lerp(const TColor& a, const TColor& b, const float& u) {
-        return { { 
-                std::lerp(a[0], b[0], u),
-                std::lerp(a[1], b[1], u)
-            } };
-    }
-
-    template <IsColorN<3> TColor>
-    inline [[nodiscard]] TColor lerp(const TColor& a, const TColor& b, const float& u) {
-        return { { 
-                std::lerp(a[0], b[0], u),
-                std::lerp(a[1], b[1], u),
-                std::lerp(a[2], b[2], u)
-            } };
-    }
-
-    template <IsColorN<4> TColor>
-    inline [[nodiscard]] TColor lerp(const TColor& a, const TColor& b, const float& u) {
-        return { { 
-                std::lerp(a[0], b[0], u),
-                std::lerp(a[1], b[1], u),
-                std::lerp(a[2], b[2], u),
-                std::lerp(a[3], b[3], u)
-            } };
-    }
-
-    template <IsColorN<5> TColor>
-    inline [[nodiscard]] TColor lerp(const TColor& a, const TColor& b, const float& u) {
-        return { { 
-                std::lerp(a[0], b[0], u),
-                std::lerp(a[1], b[1], u),
-                std::lerp(a[2], b[2], u),
-                std::lerp(a[3], b[3], u),
-                std::lerp(a[4], b[4], u)
-            } };
-    }
 }

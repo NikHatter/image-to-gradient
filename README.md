@@ -6,6 +6,8 @@ Creates linear gradient approximation from and input image.
 ## Dependencies
 
 Vcpkg, Boost::gil, libpng, libjpeg.
+For visual application Qt 6.
+
 
 ## Build
 
